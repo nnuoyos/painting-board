@@ -6,6 +6,8 @@ const colorOptions = Array.from(document.getElementsByClassName('color_option'))
 const modeBtn = document.getElementById('mode_btn');
 const destroyBtn = document.getElementById('destroy_btn');
 const eraserBtn = document.getElementById('eraser_btn');
+const fileInput = document.getElementById('file');
+
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 800;
 
@@ -13,7 +15,8 @@ canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
 ctx.lineWidth = lineWidthBar.value;
 let isPainting = false; //마우스의 현재 상태
-let isMode = false; //선-채우기 모드 
+let isMode = false; //선-채우기 모드
+let isDestroy = false; //초기화 상태 
  
 
 function onMove(event){
@@ -64,7 +67,7 @@ function onModeClick(event){
     }
 }
 
-//캔버스 채우기 & 지우개
+//캔버스 채우기 Fill
 let filledColor = "white"; //기본 지우개 컬러 
 function onCanvasClick(){
     if(isMode){
@@ -73,18 +76,37 @@ function onCanvasClick(){
     }
 };
 
-//초기화
+//캔버스 초기화
 function onDestroyClick(){
     ctx.fillStyle = "white";
     ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+    ctx.strokeStyle = "white";
+    isDestroy = true;
 }
 
 //지우개
 function onEraserClick(){
-    ctx.strokeStyle = filledColor; //지우개 모드일 때는 이전에 캔버스에 채웠던 색으로 지정
+    if(isDestroy){ //초기화 했을 땐 지우개 컬러 화이트로 설정
+        ctx.strokeStyle = "white";
+    }else{
+        ctx.strokeStyle = filledColor; //초기화 하지 않았을 땐 캔버스에 채웠던 색으로 지정
+    }
     isMode = false; //채우기 모드 off
+
+    
 }
 
+function onFileChange(event){
+    const file = event.target.files[0];
+    const url = URL.createObjectURL(file); //브라우저를 위한 URL (현실의 인터넷에선 존재하지 않음)
+    console.log(url);
+    const image = new Image()
+    image.src = url; // image.src == HTML에서 <img src""/> 라고 쓰는 것과 동일
+    image.onload = function(){
+        ctx.drawImage(image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        fileInput.value = null;
+    }
+}
 
 canvas.addEventListener("mousemove", onMove); //마우스가 움직일 때 마다 선이 생겨남 
 canvas.addEventListener("mousedown", startPainting); 
@@ -98,3 +120,4 @@ colorOptions.forEach(color => color.addEventListener("click", onColorClick)); //
 modeBtn.addEventListener("click", onModeClick);
 destroyBtn.addEventListener("click", onDestroyClick);
 eraserBtn.addEventListener("click", onEraserClick);
+fileInput.addEventListener("change", onFileChange);
